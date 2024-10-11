@@ -1,4 +1,5 @@
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
+import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 
 function parseHeaders(headersString: string | undefined): Record<string, string> {
   if (!headersString) {
@@ -20,7 +21,12 @@ function parseHeaders(headersString: string | undefined): Record<string, string>
 
 const headers = parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS);
 
-export const metricExporter = new OTLPMetricExporter({
+const metricExporter = new OTLPMetricExporter({
   url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics`,
   headers: headers,
+});
+
+export const metricReader = new PeriodicExportingMetricReader({
+  exporter: metricExporter,
+  exportIntervalMillis: 10000,
 });
