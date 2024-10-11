@@ -14,7 +14,7 @@ export async function async_counter() {
   const start = Date.now();
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  counter.add(1, { function: "async_counter" });
+  counter.add(1, { function: "async_counter", environment: process.env.VERCEL_ENV || "development" });
 
   const end = Date.now();
   console.log(`-----------------------------async_counter() duration: ${end - start}ms`);
@@ -29,7 +29,7 @@ export async function force_flush_counter() {
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  counter.add(1, { function: "force_flush_counter" });
+  counter.add(1, { function: "force_flush_counter", environment: process.env.VERCEL_ENV || "development" });
 
   try {
     await metricExporter.forceFlush();
