@@ -1,3 +1,4 @@
+import { registerOTel } from "@vercel/otel";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 
@@ -30,3 +31,9 @@ export const metricReader = new PeriodicExportingMetricReader({
   exporter: metricExporter,
   exportIntervalMillis: 10000,
 });
+
+registerOTel({
+  serviceName: "research-nextjs-vercel-telemetry",
+  metricReader: metricReader,
+});
+console.log("-- OTEL registered --");
