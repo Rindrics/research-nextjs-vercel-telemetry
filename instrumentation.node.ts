@@ -22,12 +22,12 @@ function parseHeaders(headersString: string | undefined): Record<string, string>
 
 const headers = parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS);
 
-const metricExporter = new OTLPMetricExporter({
+export const metricExporter = new OTLPMetricExporter({
   url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics`,
   headers: headers,
 });
 
-export const metricReader = new PeriodicExportingMetricReader({
+const metricReader = new PeriodicExportingMetricReader({
   exporter: metricExporter,
   exportIntervalMillis: 10000,
 });

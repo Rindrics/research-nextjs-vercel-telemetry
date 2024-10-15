@@ -1,7 +1,7 @@
 'use server'
 
 import { metrics } from "@opentelemetry/api";
-import { metricReader } from "../instrumentation.node";
+import { metricExporter } from "../instrumentation.node";
 
 const meter = metrics.getMeter("server action");
 const counter= meter.createCounter("function_call", {
@@ -32,7 +32,7 @@ export async function force_flush_counter() {
   counter.add(1, { function: "force_flush_counter", environment: process.env.VERCEL_ENV || "development" });
 
   try {
-    await metricReader.forceFlush();
+    await metricExporter.forceFlush();
     console.log('Metrics flushed successfully');
   } catch (error) {
     console.error('Error flushing metrics:', error);
