@@ -33,6 +33,9 @@ export async function force_flush_counter() {
 
   try {
     await metricExporter.forceFlush();
+    // I got better result by doing this, but still can't observe metrics in situation belqw:
+    // - approximately 5 minutes after deployment
+    // - when a request is made again after several minutes of inactivity
     console.log('Metrics flushed successfully');
   } catch (error) {
     console.error('Error flushing metrics:', error);
