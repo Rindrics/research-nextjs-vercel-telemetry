@@ -33,8 +33,6 @@ export async function async_counter() {
 }
 
 export async function force_flush_counter() {
-  const flushPromise = flushTelemetry();
-
   log(SeverityNumber.INFO, 'force_flush_counter() start =================================');
   const start = Date.now();
 
@@ -42,6 +40,7 @@ export async function force_flush_counter() {
 
   const end = Date.now();
   log(SeverityNumber.INFO, `=============================force_flush_counter() duration: ${end - start}ms`);
+  const flushPromise = flushTelemetry();
 
   waitUntil(flushPromise);
 
