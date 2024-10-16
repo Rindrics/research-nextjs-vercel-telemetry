@@ -37,8 +37,11 @@ export async function force_flush_counter() {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   counter.add(1, { function: "force_flush_counter", environment: process.env.VERCEL_ENV || "development" });
   try {
+    log(SeverityNumber.INFO, 'inside try block');
     await metricReader.forceFlush();
+    log(SeverityNumber.INFO, 'metricReader.forceFlush() successful');
     await loggerProvider.forceFlush();
+    log(SeverityNumber.INFO, 'loggerProvider.forceFlush() successful');
     log(SeverityNumber.INFO, 'Metrics and logs flushed successfully');
   } catch (error) {
     log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', { 
