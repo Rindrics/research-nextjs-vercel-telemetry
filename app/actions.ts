@@ -2,6 +2,7 @@
 import { metrics, DiagConsoleLogger, diag, DiagLogLevel } from "@opentelemetry/api";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 import { metricReader, logger, loggerProvider } from "../instrumentation.node";
+import { waitUntil } from '@vercel/functions';
 
 // Enable debug logging for OpenTelemetry
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
@@ -32,23 +33,33 @@ export async function async_counter() {
 }
 
 export async function force_flush_counter() {
+  const flushPromise = flushTelemetry();
+
   log(SeverityNumber.INFO, 'force_flush_counter() start =================================');
   const start = Date.now();
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   counter.add(1, { function: "force_flush_counter", environment: process.env.VERCEL_ENV || "development" });
+
+  const end = Date.now();
+  log(SeverityNumber.INFO, `=============================force_flush_counter() duration: ${end - start}ms`);
+
+  waitUntil(flushPromise);
+
+  return;
+}
+
+async function flushTelemetry() {
   try {
-    log(SeverityNumber.INFO, 'inside try block');
+    log(SeverityNumber.INFO, 'Starting telemetry flush');
+    await new Promise(resolve => setTimeout(resolve, 1000));
     await Promise.all([
       metricReader.forceFlush(),
       loggerProvider.forceFlush(),
     ]);
     log(SeverityNumber.INFO, 'Metrics and logs flushed successfully');
   } catch (error) {
-    log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', { 
+    log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', {
       error: error instanceof Error ? error.message : String(error)
     });
   }
-  const end = Date.now();
-  log(SeverityNumber.INFO, `=============================force_flush_counter() duration: ${end - start}ms`);
-  return;
 }
