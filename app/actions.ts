@@ -1,9 +1,7 @@
 "use server";
 import { metrics, DiagConsoleLogger, diag, DiagLogLevel } from "@opentelemetry/api";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
-import { metricReader } from "../instrumentation.node";
-import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
+import { metricReader, logger, loggerProvider } from "../instrumentation.node";
 
 // Enable debug logging for OpenTelemetry
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
@@ -12,30 +10,6 @@ const meter = metrics.getMeter("server action");
 const counter = meter.createCounter("function_call", {
   description: "number of function calls",
 });
-
-// Initialize LoggerProvider
-const loggerProvider = new LoggerProvider();
-
-// Create and configure OTLP exporter for logs
-const otlpLogExporter = new OTLPLogExporter({
-  url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`,
-  headers: {}, // Add any necessary headers
-});
-
-// Configure BatchLogRecordProcessor with more frequent exports
-const batchProcessor = new BatchLogRecordProcessor(otlpLogExporter, {
-  scheduledDelayMillis: 1000, // Export every 1 second
-  exportTimeoutMillis: 30000, // 30 seconds timeout
-});
-
-// Add log processor
-loggerProvider.addLogRecordProcessor(batchProcessor);
-
-// Set the global logger provider
-logs.setGlobalLoggerProvider(loggerProvider);
-
-// Get a logger instance
-const logger = logs.getLogger('server-action-logger');
 
 // Helper function to log to both console and OpenTelemetry
 function log(severity: SeverityNumber, message: string, attributes?: Record<string, any>) {
@@ -64,7 +38,7 @@ export async function force_flush_counter() {
   counter.add(1, { function: "force_flush_counter", environment: process.env.VERCEL_ENV || "development" });
   try {
     await metricReader.forceFlush();
-    await batchProcessor.forceFlush();
+    await loggerProvider.forceFlush();
     log(SeverityNumber.INFO, 'Metrics and logs flushed successfully');
   } catch (error) {
     log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', { 

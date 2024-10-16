@@ -54,13 +54,24 @@ const logExporter = new OTLPLogExporter({
   headers: headers,
 });
 
+export const loggerProvider = new LoggerProvider();
+loggerProvider.addLogRecordProcessor(new BatchLogRecordProcessor(logExporter));
+
+// Only add ConsoleLogRecordExporter in development
+if (process.env.NODE_ENV !== 'production') {
+  loggerProvider.addLogRecordProcessor(new BatchLogRecordProcessor(new ConsoleLogRecordExporter()));
+}
+
+const logRecordProcessor = new BatchLogRecordProcessor(logExporter);
+loggerProvider.addLogRecordProcessor(logRecordProcessor);
 
 registerOTel({
   serviceName: "research-nextjs-vercel-telemetry",
   metricReader: metricReader,
   spanProcessors: [spanProcessor, debugSpanProcessor],
   traceExporter: traceExporter,
-  logRecordProcessor: new BatchLogRecordProcessor(logExporter),
+  logRecordProcessor: logRecordProcessor,
 });
 
+export const logger = loggerProvider.getLogger("research-nextjs-vercel-telemetry");
 console.log("-- OTEL registered with metrics, traces, and logs --");
