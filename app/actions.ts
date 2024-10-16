@@ -56,6 +56,7 @@ async function flushTelemetry() {
       metricReader.forceFlush(),
       loggerProvider.forceFlush(),
     ]);
+    log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise');
     log(SeverityNumber.INFO, 'Metrics and logs flushed successfully');
   } catch (error) {
     log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', {
