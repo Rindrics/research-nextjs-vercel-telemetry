@@ -17,32 +17,29 @@ function log(severity: SeverityNumber, message: string, attributes?: Record<stri
   // Log to console
   const consoleMethod = severity <= SeverityNumber.INFO ? console.log : console.error;
   consoleMethod(message, attributes);
-  console.log("logger");
-  console.log(logger);
-  console.log("logger");
 
   // Log to OpenTelemetry
   logger.emit({ severityNumber: severity, body: message, attributes });
 }
 
 export async function async_counter() {
-  log(SeverityNumber.INFO, 'async_counter() start ---------------------------------');
+  log(SeverityNumber.INFO, 'async_counter() start --', process.env.VERCEL_ENV);
   const start = Date.now();
   await new Promise((resolve) => setTimeout(resolve, 1000));
   counter.add(1, { function: "async_counter", environment: process.env.VERCEL_ENV || "development" });
   const end = Date.now();
-  log(SeverityNumber.INFO, `-----------------------------async_counter() duration: ${end - start}ms`);
+  log(SeverityNumber.INFO, `--async_counter() duration: ${end - start}ms`, process.env.VERCEL_ENV);
   return;
 }
 
 export async function force_flush_counter() {
-  log(SeverityNumber.INFO, 'force_flush_counter() start =================================');
+  log(SeverityNumber.INFO, 'force_flush_counter() start ==', process.env.VERCEL_ENV);
   const start = Date.now();
 
   counter.add(1, { function: "force_flush_counter", environment: process.env.VERCEL_ENV || "development" });
 
   const end = Date.now();
-  log(SeverityNumber.INFO, `=============================force_flush_counter() duration: ${end - start}ms`);
+  log(SeverityNumber.INFO, `==force_flush_counter() duration: ${end - start}ms`, process.env.VERCEL_ENV);
   const flushPromise = flushTelemetry();
 
   waitUntil(flushPromise);
