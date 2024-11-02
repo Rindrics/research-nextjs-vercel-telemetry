@@ -17,6 +17,9 @@ function log(severity: SeverityNumber, message: string, attributes?: Record<stri
   // Log to console
   const consoleMethod = severity <= SeverityNumber.INFO ? console.log : console.error;
   consoleMethod(message, attributes);
+  console.log("logger");
+  console.log(logger);
+  console.log("logger");
 
   // Log to OpenTelemetry
   logger.emit({ severityNumber: severity, body: message, attributes });
