@@ -6,22 +6,36 @@ import { createStreamableValue } from "ai/rsc";
 import { schema } from "./schema";
 import { metrics } from "@opentelemetry/api";
 import { withTelemetry, openAIMetrics } from "./telemetryHelper"
+import { Langfuse } from "langfuse";
 
 async function generateImpl(input: string) {
+  const lf = new Langfuse();
+  const trace = lf.trace({
+    id: `${Date.now()}`,
+  });
   const stream = createStreamableValue();
 
   (async () => {
+    const model = 'gpt-4o-mini';
+    const generation = trace.generation({
+      input,
+      model,
+    });
     const { partialObjectStream, object } = await streamObject({
-      model: openai('gpt-4o-mini'),
+      model: openai(model),
       system: 'You generate an an answer to a question in 3000 words.',
       schema,
       prompt: input,
-      onFinish: (result) => {
+      onFinish: async (result) => {
         console.log("onFinish---");
         console.log(result);
         if (result.usage?.totalTokens) {
           openAIMetrics.updateTokens(result.usage.totalTokens);
         }
+        generation.end({
+          output: result,
+	});
+        await lf.shutdownAsync();
       }
     });
 

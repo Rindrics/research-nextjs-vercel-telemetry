@@ -19,6 +19,7 @@
     "@vercel/functions": "^1.4.2",
     "@vercel/otel": "^1.10.0",
     "ai": "^3.4.31",
+    "langfuse": "^3.28.0",
     "next": "14.2.15",
     "react": "^18",
     "react-dom": "^18"
