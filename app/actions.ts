@@ -5,8 +5,9 @@ import { streamObject } from 'ai';
 import { createStreamableValue } from "ai/rsc";
 import { schema } from "./schema";
 import { metrics } from "@opentelemetry/api";
+import { withTelemetry } from "./telemetryHelper"
 
-export async function generate(input: string) {
+async function generateImpl(input: string) {
   const stream = createStreamableValue();
 
   (async () => {
@@ -38,3 +39,5 @@ export async function generate(input: string) {
   })()
   return { object: stream.value };
 };
+
+export const generate = withTelemetry("generate", generateImpl);
