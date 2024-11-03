@@ -31,7 +31,7 @@ export const withTelemetry = (name: string, fn: Function) => {
         const duration = endTime - startTime;
 
         latencyHistogram.record(duration, {
-          environment: process.env.VERCEL_ENV ?? 'development',
+          environment: process.env.NEXT_RUNTIME ?? '',
           status: 'success'
         });
 
@@ -46,7 +46,7 @@ export const withTelemetry = (name: string, fn: Function) => {
         const duration = endTime - startTime;
 
         latencyHistogram.record(duration, {
-          environment: process.env.VERCEL_ENV ?? 'development',
+          environment: process.env.NEXT_RUNTIME ?? '',
           status: 'error'
         });
 
@@ -75,14 +75,14 @@ class OpenAIMetrics {
 
     this.tokenGauge.addCallback(observableResult => {
       observableResult.observe(this.currentTokens, {
-        environment: process.env.VERCEL_ENV ?? 'development'
+        environment: process.env.NEXT_RUNTIME ?? ''
       });
     });
-    log(SeverityNumber.INFO, `OpenAIMetrics initialized`, { "environment": process.env.VERCEL_ENV ?? 'development' });
+    log(SeverityNumber.INFO, `OpenAIMetrics initialized`, { "environment": process.env.NEXT_RUNTIME ?? '' });
   }
 
   async updateTokens(tokens: number) {
-    log(SeverityNumber.INFO, `tokens consumed: ${tokens}`, { "environment": process.env.VERCEL_ENV ?? 'development' });
+    log(SeverityNumber.INFO, `tokens consumed: ${tokens}`, { "environment": process.env.NEXT_RUNTIME ?? '' });
     try {
       this.currentTokens = tokens;
       await flushTelemetry();
@@ -97,15 +97,15 @@ export const openAIMetrics = new OpenAIMetrics();
 
 async function flushTelemetry() {
   try {
-    log(SeverityNumber.INFO, 'Starting telemetry flush', { "environment": process.env.VERCEL_ENV ?? 'development' });
+    log(SeverityNumber.INFO, 'Starting telemetry flush', { "environment": process.env.NEXT_RUNTIME ?? '' });
     await Promise.all([
       metricReader.forceFlush(),
       loggerProvider.forceFlush(),
     ]);
-    log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise', { "environment": process.env.VERCEL_ENV ?? 'development' });
-    log(SeverityNumber.INFO, 'Metrics and logs flushed successfully', { "environment": process.env.VERCEL_ENV ?? 'development' });
+    log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise', { "environment": process.env.NEXT_RUNTIME ?? '' });
+    log(SeverityNumber.INFO, 'Metrics and logs flushed successfully', { "environment": process.env.NEXT_RUNTIME ?? '' });
   } catch (error) {
     log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', {
-      error: error instanceof Error ? error.message : String(error), "environment": process.env.VERCEL_ENV ?? 'development' });
+      error: error instanceof Error ? error.message : String(error), "environment": process.env.NEXT_RUNTIME ?? '' });
   }
 }
