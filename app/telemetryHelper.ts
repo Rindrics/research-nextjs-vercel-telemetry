@@ -1,6 +1,7 @@
 import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace } from "@opentelemetry/api";
-import { logger } from "@/instrumentation.node";
+import { metricReader, logger, loggerProvider } from "@/instrumentation.node";
 import { SeverityNumber } from "@opentelemetry/api-logs";
+
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 function log(severity: SeverityNumber, message: string, attributes?: Record<string, any>) {
@@ -77,12 +78,34 @@ class OpenAIMetrics {
         environment: process.env.VERCEL_ENV ?? 'development'
       });
     });
+    log(SeverityNumber.INFO, `OpenAIMetrics initialized`, { "environment": process.env.VERCEL_ENV ?? 'development' });
   }
 
-  updateTokens(tokens: number) {
-    this.currentTokens = tokens;
+  async updateTokens(tokens: number) {
     log(SeverityNumber.INFO, `tokens consumed: ${tokens}`, { "environment": process.env.VERCEL_ENV ?? 'development' });
+    try {
+      this.currentTokens = tokens;
+      await flushTelemetry();
+    } catch (error) {
+      console.error('Failed to update token metrics:', error);
+      throw error;
+    }
   }
 }
 
 export const openAIMetrics = new OpenAIMetrics();
+
+async function flushTelemetry() {
+  try {
+    log(SeverityNumber.INFO, 'Starting telemetry flush', { "environment": process.env.VERCEL_ENV ?? 'development' });
+    await Promise.all([
+      metricReader.forceFlush(),
+      loggerProvider.forceFlush(),
+    ]);
+    log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise', { "environment": process.env.VERCEL_ENV ?? 'development' });
+    log(SeverityNumber.INFO, 'Metrics and logs flushed successfully', { "environment": process.env.VERCEL_ENV ?? 'development' });
+  } catch (error) {
+    log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', {
+      error: error instanceof Error ? error.message : String(error), "environment": process.env.VERCEL_ENV ?? 'development' });
+  }
+}

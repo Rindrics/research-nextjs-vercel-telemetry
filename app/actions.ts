@@ -7,6 +7,7 @@ import { schema } from "./schema";
 import { metrics } from "@opentelemetry/api";
 import { withTelemetry, openAIMetrics } from "./telemetryHelper"
 import { Langfuse } from "langfuse";
+import { waitUntil } from "@vercel/functions";
 
 async function generateImpl(input: string) {
   const lf = new Langfuse();
@@ -42,7 +43,7 @@ async function generateImpl(input: string) {
 
     const result = await object;
     const usageData = await usage;
-    openAIMetrics.updateTokens(usageData.totalTokens);
+    waitUntil(openAIMetrics.updateTokens(usageData.totalTokens));
 
     stream.done();
   })()
