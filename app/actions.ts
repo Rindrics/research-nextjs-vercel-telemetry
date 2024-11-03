@@ -5,7 +5,7 @@ import { streamObject } from 'ai';
 import { createStreamableValue } from "ai/rsc";
 import { schema } from "./schema";
 import { metrics } from "@opentelemetry/api";
-import { withTelemetry } from "./telemetryHelper"
+import { withTelemetry, openAIMetrics } from "./telemetryHelper"
 
 async function generateImpl(input: string) {
   const stream = createStreamableValue();
@@ -19,18 +19,9 @@ async function generateImpl(input: string) {
       onFinish: (result) => {
         console.log("onFinish---");
         console.log(result);
-        const meter = metrics.getMeter("OpenAI");
-        const tokenGauge = meter.createObservableGauge("token_consumed", {
-          description: "Number of OpenAI API tokens consumed by each request",
-          unit: "tokens",
-        });
-        let currentTokens = 0;
-        tokenGauge.addCallback(observableResult => {
-          observableResult.observe(currentTokens, {
-            environment: process.env.VERCEL_ENV ?? 'development'
-          });
-        });
-        currentTokens = result.usage.totalTokens;
+        if (result.usage?.totalTokens) {
+          openAIMetrics.updateTokens(result.usage.totalTokens);
+        }
       }
     });
 

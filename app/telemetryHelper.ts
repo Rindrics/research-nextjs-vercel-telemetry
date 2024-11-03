@@ -49,3 +49,29 @@ export const withTelemetry = (name: string, fn: Function) => {
     });
   };
 };
+
+class OpenAIMetrics {
+  private meter;
+  private tokenGauge;
+  private currentTokens = 0;
+
+  constructor() {
+    this.meter = metrics.getMeter("OpenAI");
+    this.tokenGauge = this.meter.createObservableGauge("token_consumed", {
+      description: "Number of OpenAI API tokens consumed by each request",
+      unit: "tokens",
+    });
+
+    this.tokenGauge.addCallback(observableResult => {
+      observableResult.observe(this.currentTokens, {
+        environment: process.env.VERCEL_ENV ?? 'development'
+      });
+    });
+  }
+
+  updateTokens(tokens: number) {
+    this.currentTokens = tokens;
+  }
+}
+
+export const openAIMetrics = new OpenAIMetrics();
