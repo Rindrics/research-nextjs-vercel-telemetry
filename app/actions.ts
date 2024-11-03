@@ -20,12 +20,17 @@ async function generateImpl(input: string) {
         console.log("onFinish---");
         console.log(result);
         const meter = metrics.getMeter("OpenAI");
-        const tokenCounter = meter.createCounter("token_consumed", {
+        const tokenGauge = meter.createObservableGauge("token_consumed", {
           description: "Number of OpenAI API tokens consumed by each request",
+          unit: "tokens",
         });
-        tokenCounter.add(result.usage.totalTokens, {
-                environment: process.env.VERCEL_ENV,
+        let currentTokens = 0;
+        tokenGauge.addCallback(observableResult => {
+          observableResult.observe(currentTokens, {
+            environment: process.env.VERCEL_ENV ?? 'development'
+          });
         });
+        currentTokens = result.usage.totalTokens;
       }
     });
 
