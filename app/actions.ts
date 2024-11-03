@@ -21,7 +21,7 @@ async function generateImpl(input: string) {
       input,
       model,
     });
-    const { partialObjectStream, object } = await streamObject({
+    const { partialObjectStream, object, usage } = await streamObject({
       model: openai(model),
       system: 'You generate an an answer to a question in 3000 words.',
       schema,
@@ -29,9 +29,6 @@ async function generateImpl(input: string) {
       onFinish: async (result) => {
         console.log("onFinish---");
         console.log(result);
-        if (result.usage?.totalTokens) {
-          openAIMetrics.updateTokens(result.usage.totalTokens);
-        }
         generation.end({
           output: result,
 	});
@@ -44,6 +41,8 @@ async function generateImpl(input: string) {
     }
 
     const result = await object;
+    const usageData = await usage;
+    openAIMetrics.updateTokens(usageData.totalTokens);
 
     stream.done();
   })()
