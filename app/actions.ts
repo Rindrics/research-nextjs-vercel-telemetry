@@ -29,7 +29,8 @@ async function generateImpl(input: string) {
       prompt: input,
       onFinish: async (result) => {
         console.log("onFinish---");
-        console.log(result, usageData);
+        console.log(result);
+        waitUntil(openAIMetrics.updateTokens(result.usage.totalTokens));
         generation.end({
           output: result,
 	});
@@ -42,8 +43,6 @@ async function generateImpl(input: string) {
     }
 
     const result = await object;
-    const usageData = await usage;
-    waitUntil(openAIMetrics.updateTokens(usageData.totalTokens));
 
     stream.done();
   })()
