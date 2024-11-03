@@ -29,7 +29,7 @@ async function generateImpl(input: string) {
       prompt: input,
       onFinish: async (result) => {
         console.log("onFinish---");
-        console.log(result);
+        console.log(result, usageData);
         generation.end({
           output: result,
 	});

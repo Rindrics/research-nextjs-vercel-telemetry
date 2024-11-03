@@ -32,7 +32,8 @@ export const withTelemetry = (name: string, fn: Function) => {
 
         latencyHistogram.record(duration, {
           runtime: process.env.NEXT_RUNTIME ?? '',
-          status: 'success'
+          environment: process.env.VERCEL_ENV ?? '',
+          status: 'success',
         });
 
         span.setAttribute("duration_ms", duration);
@@ -47,7 +48,8 @@ export const withTelemetry = (name: string, fn: Function) => {
 
         latencyHistogram.record(duration, {
           runtime: process.env.NEXT_RUNTIME ?? '',
-          status: 'error'
+          environment: process.env.VERCEL_ENV ?? '',
+          status: 'error',
         });
 
         span.setAttribute("status", "error");
@@ -75,14 +77,21 @@ class OpenAIMetrics {
 
     this.tokenGauge.addCallback(observableResult => {
       observableResult.observe(this.currentTokens, {
-        runtime: process.env.NEXT_RUNTIME ?? ''
+        runtime: process.env.NEXT_RUNTIME ?? '',
+        environment: process.env.VERCEL_ENV ?? '',
       });
     });
-    log(SeverityNumber.INFO, `OpenAIMetrics initialized`, { "runtime": process.env.NEXT_RUNTIME ?? '' });
+    log(SeverityNumber.INFO, `OpenAIMetrics initialized`, {
+      runtime: process.env.NEXT_RUNTIME ?? '',
+      environment: process.env.VERCEL_ENV ?? '',
+    });
   }
 
   async updateTokens(tokens: number) {
-    log(SeverityNumber.INFO, `tokens consumed: ${tokens}`, { "runtime": process.env.NEXT_RUNTIME ?? '' });
+    log(SeverityNumber.INFO, `tokens consumed: ${tokens}`, {
+      runtime: process.env.NEXT_RUNTIME ?? '',
+      environment: process.env.VERCEL_ENV ?? '',
+    });
     try {
       this.currentTokens = tokens;
       await flushTelemetry();
@@ -97,16 +106,28 @@ export const openAIMetrics = new OpenAIMetrics();
 
 async function flushTelemetry() {
   try {
-    log(SeverityNumber.INFO, 'Starting telemetry flush', { "runtime": process.env.NEXT_RUNTIME ?? '' });
+    log(SeverityNumber.INFO, 'Starting telemetry flush', {
+      runtime: process.env.NEXT_RUNTIME ?? '',
+      environment: process.env.VERCEL_ENV ?? '',
+    });
     await Promise.all([
       metricReader.forceFlush(),
       loggerProvider.forceFlush(),
       spanProcessor.forceFlush(),
     ]);
-    log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise', { "runtime": process.env.NEXT_RUNTIME ?? '' });
-    log(SeverityNumber.INFO, 'Metrics and logs flushed successfully', { "runtime": process.env.NEXT_RUNTIME ?? '' });
+    log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise', {
+      runtime: process.env.NEXT_RUNTIME ?? '',
+      environment: process.env.VERCEL_ENV ?? '',
+    });
+    log(SeverityNumber.INFO, 'Metrics and logs flushed successfully', {
+      runtime: process.env.NEXT_RUNTIME ?? '',
+      environment: process.env.VERCEL_ENV ?? '',
+    });
   } catch (error) {
     log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', {
-      error: error instanceof Error ? error.message : String(error), "runtime": process.env.NEXT_RUNTIME ?? '' });
+      error: error instanceof Error ? error.message : String(error),
+      runtime: process.env.NEXT_RUNTIME ?? '',
+      environment: process.env.VERCEL_ENV ?? '',
+    });
   }
 }
