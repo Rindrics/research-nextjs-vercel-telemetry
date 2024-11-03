@@ -1,4 +1,14 @@
-import { metrics, trace } from "@opentelemetry/api";
+import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace } from "@opentelemetry/api";
+import { logger } from "@/instrumentation.node";
+import { SeverityNumber } from "@opentelemetry/api-logs";
+
+diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
+function log(severity: SeverityNumber, message: string, attributes?: Record<string, any>) {
+  const consoleMethod = severity <= SeverityNumber.INFO ? console.log : console.error;
+  consoleMethod(message, attributes);
+
+  logger.emit({ severityNumber: severity, body: message, attributes });
+}
 
 export const withTelemetry = (name: string, fn: Function) => {
   return async (...args: any[]) => {
@@ -71,6 +81,7 @@ class OpenAIMetrics {
 
   updateTokens(tokens: number) {
     this.currentTokens = tokens;
+    log(SeverityNumber.INFO, `tokens consumed: ${tokens}`, { "environment": process.env.VERCEL_ENV ?? 'development' });
   }
 }
 
