@@ -18,6 +18,13 @@ export async function generate(input: string) {
       onFinish: (result) => {
         console.log("onFinish---");
         console.log(result);
+        const meter = metrics.getMeter("OpenAI");
+        const tokenCounter = meter.createCounter("token_consumed", {
+          description: "Number of OpenAI API tokens consumed by each request",
+        });
+        tokenCounter.add(result.usage.totalTokens, {
+                environment: process.env.VERCEL_ENV,
+        });
       }
     });
 
