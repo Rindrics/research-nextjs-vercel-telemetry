@@ -1,5 +1,5 @@
 import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace } from "@opentelemetry/api";
-import { metricReader, logger, loggerProvider } from "@/instrumentation.node";
+import { metricReader, logger, loggerProvider, spanProcessor } from "@/instrumentation.node";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 
 
@@ -101,6 +101,7 @@ async function flushTelemetry() {
     await Promise.all([
       metricReader.forceFlush(),
       loggerProvider.forceFlush(),
+      spanProcessor.forceFlush(),
     ]);
     log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise', { "environment": process.env.NEXT_RUNTIME ?? '' });
     log(SeverityNumber.INFO, 'Metrics and logs flushed successfully', { "environment": process.env.NEXT_RUNTIME ?? '' });

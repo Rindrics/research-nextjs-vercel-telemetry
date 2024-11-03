@@ -43,7 +43,7 @@ const traceExporter = new OTLPTraceExporter({
   headers: headers,
 });
 
-const spanProcessor = new BatchSpanProcessor(traceExporter);
+export const spanProcessor = new BatchSpanProcessor(traceExporter);
 
 // For debug purposes, you can also use SimpleSpanProcessor with ConsoleSpanExporter
 const debugSpanProcessor = new SimpleSpanProcessor(new ConsoleSpanExporter());
