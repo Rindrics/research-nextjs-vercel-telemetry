@@ -34,7 +34,7 @@ const metricExporter = new OTLPMetricExporter({
 
 export const metricReader = new PeriodicExportingMetricReader({
   exporter: metricExporter,
-  exportIntervalMillis: 5000,
+  exportIntervalMillis: 10000,
 });
 
 // Trace Exporter
