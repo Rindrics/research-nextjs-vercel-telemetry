@@ -53,8 +53,8 @@ async function flushTelemetry() {
     await Promise.all([
       metricReader.forceFlush(),
       loggerProvider.forceFlush(),
+      new Promise(resolve => setTimeout(resolve, 15000)), // wait for exporting
     ]);
-    await new Promise(resolve => setTimeout(resolve, 15000)); // wait for exporting
     log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise');
     log(SeverityNumber.INFO, 'Metrics and logs flushed successfully');
   } catch (error) {
