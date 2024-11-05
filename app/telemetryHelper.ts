@@ -115,8 +115,6 @@ async function flushTelemetry() {
       loggerProvider.forceFlush(),
       spanProcessor.forceFlush(),
     ]);
-    await new Promise(resolve => setTimeout(resolve, 10000)); // wait for exporting
-
     log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise', {
       runtime: process.env.NEXT_RUNTIME ?? '',
       environment: process.env.VERCEL_ENV ?? '',
