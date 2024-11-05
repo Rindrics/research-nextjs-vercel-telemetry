@@ -16,6 +16,7 @@
     "@opentelemetry/exporter-trace-otlp-http": "^0.53.0",
     "@opentelemetry/sdk-metrics": "^1.26.0",
     "@opentelemetry/sdk-trace-node": "^1.26.0",
+    "@opentelemetry/otlp-exporter-base": "github:Rindrics/opentelemetry-js#zenn-scraps/13a8066f1ff012?directory=experimental/packages/otlp-exporter-base",
     "@vercel/functions": "^1.5.0",
     "@vercel/otel": "^1.10.0",
     "ai": "^3.4.31",
