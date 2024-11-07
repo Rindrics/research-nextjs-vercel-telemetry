@@ -1,5 +1,5 @@
 import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace } from "@opentelemetry/api";
-import { metricReader, logger, loggerProvider, spanProcessor } from "@/lib/otel";
+import { logger } from "@/lib/otel";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 
 
@@ -94,7 +94,6 @@ class OpenAIMetrics {
     });
     try {
       this.currentTokens = tokens;
-      await flushTelemetry();
     } catch (error) {
       console.error('Failed to update token metrics:', error);
       throw error;
@@ -103,31 +102,3 @@ class OpenAIMetrics {
 }
 
 export const openAIMetrics = new OpenAIMetrics();
-
-async function flushTelemetry() {
-  try {
-    log(SeverityNumber.INFO, 'Starting telemetry flush', {
-      runtime: process.env.NEXT_RUNTIME ?? '',
-      environment: process.env.VERCEL_ENV ?? '',
-    });
-    await Promise.all([
-      metricReader.forceFlush(),
-      loggerProvider.forceFlush(),
-      spanProcessor.forceFlush(),
-    ]);
-    log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise', {
-      runtime: process.env.NEXT_RUNTIME ?? '',
-      environment: process.env.VERCEL_ENV ?? '',
-    });
-    log(SeverityNumber.INFO, 'Metrics and logs flushed successfully', {
-      runtime: process.env.NEXT_RUNTIME ?? '',
-      environment: process.env.VERCEL_ENV ?? '',
-    });
-  } catch (error) {
-    log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', {
-      error: error instanceof Error ? error.message : String(error),
-      runtime: process.env.NEXT_RUNTIME ?? '',
-      environment: process.env.VERCEL_ENV ?? '',
-    });
-  }
-}
