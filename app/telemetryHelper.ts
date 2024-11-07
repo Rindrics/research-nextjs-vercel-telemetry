@@ -1,5 +1,5 @@
 import { diag, DiagConsoleLogger, DiagLogLevel, metrics, trace } from "@opentelemetry/api";
-import { metricReader, logger, loggerProvider, spanProcessor } from "@/instrumentation.node";
+import { metricReader, logger, loggerProvider, spanProcessor } from "@/lib/otel";
 import { SeverityNumber } from "@opentelemetry/api-logs";
 
 
