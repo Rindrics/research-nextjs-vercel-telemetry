@@ -30,7 +30,7 @@ async function generateImpl(input: string) {
       onFinish: async (result) => {
         console.log("onFinish---");
         console.log(result);
-        await waitUntil(openAIMetrics.updateTokens(result.usage.totalTokens));
+        waitUntil(openAIMetrics.updateTokens(result.usage.totalTokens));
         generation.end({
           output: result,
 	});
