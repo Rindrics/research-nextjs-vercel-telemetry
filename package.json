@@ -9,13 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.71",
+    "@opentelemetry/api-logs": "^0.54.0",
     "@opentelemetry/exporter-logs-otlp-http": "^0.53.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.53.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.53.0",
     "@opentelemetry/sdk-metrics": "^1.26.0",
     "@opentelemetry/sdk-trace-node": "^1.26.0",
-    "@vercel/functions": "^1.4.2",
+    "@vercel/functions": "^1.5.0",
     "@vercel/otel": "^1.10.0",
+    "ai": "^3.4.31",
+    "langfuse": "^3.28.0",
     "next": "14.2.15",
     "react": "^18",
     "react-dom": "^18"

@@ -1,63 +1,52 @@
 "use server";
-import { metrics, DiagConsoleLogger, diag, DiagLogLevel } from "@opentelemetry/api";
-import { logs, SeverityNumber } from "@opentelemetry/api-logs";
-import { metricReader, logger, loggerProvider } from "../instrumentation.node";
-import { waitUntil } from '@vercel/functions';
 
-// Enable debug logging for OpenTelemetry
-diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
+import { openai } from '@ai-sdk/openai';
+import { streamObject } from 'ai';
+import { createStreamableValue } from "ai/rsc";
+import { schema } from "./schema";
+import { metrics } from "@opentelemetry/api";
+import { withTelemetry, openAIMetrics } from "./telemetryHelper"
+import { Langfuse } from "langfuse";
+import { waitUntil } from "@vercel/functions";
 
-const meter = metrics.getMeter("server action");
-const counter = meter.createCounter("function_call", {
-  description: "number of function calls",
-});
+async function generateImpl(input: string) {
+  const lf = new Langfuse();
+  const trace = lf.trace({
+    id: `${Date.now()}`,
+  });
+  const stream = createStreamableValue();
 
-// Helper function to log to both console and OpenTelemetry
-function log(severity: SeverityNumber, message: string, attributes?: Record<string, any>) {
-  // Log to console
-  const consoleMethod = severity <= SeverityNumber.INFO ? console.log : console.error;
-  consoleMethod(message, attributes);
-
-  // Log to OpenTelemetry
-  logger.emit({ severityNumber: severity, body: message, attributes });
-}
-
-export async function async_counter() {
-  log(SeverityNumber.INFO, 'async_counter() start --', {"env": process.env.VERCEL_ENV});
-  const start = Date.now();
-  counter.add(1, { function: "async_counter", environment: process.env.VERCEL_ENV || "development" });
-  const end = Date.now();
-  log(SeverityNumber.INFO, `--async_counter() duration: ${end - start}ms`, {"env": process.env.VERCEL_ENV});
-  return;
-}
-
-export async function force_flush_counter() {
-  log(SeverityNumber.INFO, 'force_flush_counter() start ==', {"env": process.env.VERCEL_ENV});
-  const start = Date.now();
-
-  counter.add(1, { function: "force_flush_counter", environment: process.env.VERCEL_ENV || "development" });
-
-  const end = Date.now();
-  log(SeverityNumber.INFO, `==force_flush_counter() duration: ${end - start}ms`, {"env": process.env.VERCEL_ENV});
-  const flushPromise = flushTelemetry();
-
-  waitUntil(flushPromise);
-
-  return;
-}
-
-async function flushTelemetry() {
-  try {
-    log(SeverityNumber.INFO, 'Starting telemetry flush');
-    await Promise.all([
-      metricReader.forceFlush(),
-      loggerProvider.forceFlush(),
-    ]);
-    log(SeverityNumber.INFO, 'Logs after me will be visible at next function call because we are outside of Promise');
-    log(SeverityNumber.INFO, 'Metrics and logs flushed successfully');
-  } catch (error) {
-    log(SeverityNumber.ERROR, 'Error flushing metrics or logs:', {
-      error: error instanceof Error ? error.message : String(error)
+  (async () => {
+    const model = 'gpt-4o-mini';
+    const generation = trace.generation({
+      input,
+      model,
     });
-  }
-}
+    const { partialObjectStream, object, usage } = await streamObject({
+      model: openai(model),
+      system: 'You generate an an answer to a question in 3000 words.',
+      schema,
+      prompt: input,
+      onFinish: async (result) => {
+        console.log("onFinish---");
+        console.log(result);
+        await waitUntil(openAIMetrics.updateTokens(result.usage.totalTokens));
+        generation.end({
+          output: result,
+	});
+        await lf.shutdownAsync();
+      }
+    });
+
+    for await (const partialObject of partialObjectStream) {
+      stream.update(partialObject);
+    }
+
+    const result = await object;
+
+    stream.done();
+  })()
+  return { object: stream.value };
+};
+
+export const generate = withTelemetry("generate", generateImpl);
