@@ -94,6 +94,7 @@ class OpenAIMetrics {
     });
     try {
       this.currentTokens = tokens;
+      await new Promise(resolve => setTimeout(resolve, 10000))
     } catch (error) {
       console.error('Failed to update token metrics:', error);
       throw error;

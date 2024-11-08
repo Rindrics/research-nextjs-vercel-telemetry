@@ -35,7 +35,7 @@ const metricExporter = new OTLPMetricExporter({
 export const metricReader = new PeriodicExportingMetricReader({
   exporter: metricExporter,
   exportIntervalMillis: 10000,
-  exportTimeoutMillis: 10000,
+  exportTimeoutMillis: 5000,
 });
 
 // Trace Exporter
@@ -49,7 +49,7 @@ export const spanProcessor = new BatchSpanProcessor(
   traceExporter,
   {
     scheduledDelayMillis: 1000,
-    exportTimeoutMillis: 10000,
+    exportTimeoutMillis: 5000,
   }
 );
 
@@ -60,7 +60,7 @@ export const debugSpanProcessor = new SimpleSpanProcessor(new ConsoleSpanExporte
 const logExporter = new OTLPLogExporter({
   url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`,
   headers: headers,
-  timeoutMillis: 10000,
+  timeoutMillis: 5000,
 });
 
 export const loggerProvider = new LoggerProvider();
@@ -68,7 +68,7 @@ loggerProvider.addLogRecordProcessor(new BatchLogRecordProcessor(
   logExporter,
   {
     scheduledDelayMillis: 1000,
-    exportTimeoutMillis: 10000,
+    exportTimeoutMillis: 5000,
   }
 ));
 
@@ -81,7 +81,7 @@ export const logRecordProcessor = new BatchLogRecordProcessor(
   logExporter,
   {
     scheduledDelayMillis: 1000,
-    exportTimeoutMillis: 10000,
+    exportTimeoutMillis: 5000,
   }
 );
 loggerProvider.addLogRecordProcessor(logRecordProcessor);
